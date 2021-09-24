@@ -79,7 +79,7 @@ class NiFTIDataset(Dataset):
     Created by Peter Lais on 09/21/2021.
     """
 
-    def __init__(self, metadata, root, transform=None):
+    def __init__(self, metadata, root, transform=None, verbose=False):
         # Check if root exists.
         if not os.path.isdir(root):
             sys.exit('ImageDataset: Root does not exist.')
@@ -97,6 +97,8 @@ class NiFTIDataset(Dataset):
         self.metadata = metadata_df
         # Image directory
         self.root = root
+        # Verbosity setting
+        self.verbose = verbose
 
     def __len__(self):
         # Number of rows of metadata dataframe.
@@ -105,7 +107,7 @@ class NiFTIDataset(Dataset):
     def __getitem__(self, idx: int):
         # Extract relevant information.
         image_row = self.metadata.iloc[idx]
-        print(image_row)
+        if self.verbose: print(image_row)
         label = image_row['Label']
         image_path = os.path.join(self.root, image_row['S25_Path'])
 
