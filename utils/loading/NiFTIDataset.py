@@ -109,7 +109,7 @@ class NiFTIDataset(Dataset):
         image_row = self.metadata.iloc[idx]
         if self.verbose: print(image_row)
         label = image_row['Label']
-        image_path = os.path.join(self.root, image_row['S25_Path'])
+        image_path = os.path.join(self.root, image_row['Slice_25_Path'])
 
         # Load image into numpy array and convert to Tensor.
         image = from_numpy(np.load(image_path))
