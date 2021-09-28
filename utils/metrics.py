@@ -28,6 +28,6 @@ def summary_statistics(y_true, y_pred):
     y_greedy = y_pred.argmax(-1)
     acc = torch.sum(y_greedy == y_true) / len(y_true)
     mcc = matthews_corrcoef(y_true, y_greedy)
-    auc = roc_auc_score(y_true, y_pred)
+    auc = roc_auc_score(y_true, y_pred if y_greedy.max() > 1 else y_pred.max(1)[0])
 
     return acc, mcc, auc
