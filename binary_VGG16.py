@@ -9,14 +9,15 @@
 # Danni Chen\09/24/2021
 
 
+from torch.utils.tensorboard.writer import SummaryWriter
 import torchvision.models as models
 import pandas as pd
 import matplotlib.pyplot as plt
-import sys
+import socket
+import time
+import os
 
 #torch
-import torch
-from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import torch.optim as optim
@@ -71,15 +72,26 @@ from utils.binary_VGG16_transfer_learning import binary_VGG16_transfer_learning
 # download its weights to a cache directory.
 model = models.vgg16(pretrained=True)
 
+# Make a directory to save information in.
+log_dir = time.strftime(
+    './runs/%b%d%y_%H-%M-%S_{}/'.format(socket.gethostname()),
+    time.localtime()
+)
+
 VGG16 = binary_VGG16_transfer_learning(model = model, 
                                 train_dataloader = train_dataloader, 
                                 test_dataloader = test_dataloader,
                                 criterion = nn.CrossEntropyLoss(), 
-                                optimizer = optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9) )
+                                optimizer = optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9),
+                                writer = SummaryWriter(log_dir=log_dir)
+                                )
 
-running_loss = VGG16.model_training(numOfEpoch = 100)
-print(running_loss)
+final_stats = VGG16.model_training(numOfEpoch = 100)
+print(final_stats)
 
-accuracy = VGG16.model_testing()
-print(accuracy)
+# Save the model.
+os.makedirs(log_dir, exist_ok=True)
+VGG16.save(log_dir + 'most_recent_model_dict.pt')
 
+# Release resources.
+VGG16.close()
