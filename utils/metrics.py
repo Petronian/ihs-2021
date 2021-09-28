@@ -26,7 +26,7 @@ def summary_statistics(y_true, y_pred):
     assert y_true.ndim == 1 and y_pred.ndim == 2
 
     y_greedy = y_pred.argmax(-1)
-    acc = torch.sum(y_greedy) / len(y_true)
+    acc = torch.sum(y_greedy == y_true) / len(y_true)
     mcc = matthews_corrcoef(y_true, y_greedy)
     auc = roc_auc_score(y_true, y_pred)
 
