@@ -152,21 +152,23 @@ class binary_VGG16_transfer_learning():
             # form all label and all pred vectors.
             all_labels = torch.cat(all_labels, dim=0)
             epoch_preds = torch.softmax(torch.cat(epoch_preds, dim=0), dim=1)
-            
-            # generate summary training metrics
-            train_acc, train_mcc, train_auc = summary_statistics(all_labels.detach().cpu(), epoch_preds.detach().cpu())
-            train_loss = running_loss / len(self.train_dataloader)
-
-            # Generate summary testing metrics
-            test_acc, test_mcc, test_auc = self.model_testing()
 
             # report epoch-wide metrics information
             if self.verbose:
                 print('\nAverage epoch training {:d} loss/acc: {:.3f}/{:.3f}'.format(epoch + 1, train_loss, train_acc))
-            self.writer.add_scalar('Loss', train_loss, epoch)
-            self.writer.add_scalars('Accuracy', {'training': train_acc, 'testing': test_acc}, epoch)
-            self.writer.add_scalar('MCC', {'training': train_mcc, 'testing': test_mcc}, epoch)
-            self.writer.add_scalar('AUC', {'training': train_auc, 'testing': test_auc}, epoch)
+            
+            if (self.writer or epoch == numOfEpoch - 1): 
+                # generate summary training metrics
+                train_acc, train_mcc, train_auc = summary_statistics(all_labels.detach().cpu(), epoch_preds.detach().cpu())
+                train_loss = running_loss / len(self.train_dataloader)
+
+                # Generate summary testing metrics
+                test_acc, test_mcc, test_auc = self.model_testing()
+
+                self.writer.add_scalar('Loss', train_loss, epoch)
+                self.writer.add_scalars('Accuracy', {'training': train_acc, 'testing': test_acc}, epoch)
+                self.writer.add_scalars('MCC', {'training': train_mcc, 'testing': test_mcc}, epoch)
+                self.writer.add_scalars('AUC', {'training': train_auc, 'testing': test_auc}, epoch)
 
         print('\nDone.')
 
