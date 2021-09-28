@@ -1,22 +1,12 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 # # References:
-# 
 # Torchvision models: https://pytorch.org/vision/stable/models.html
-# 
 # VGG16 pre-trained: https://worksheets.codalab.org/worksheets/0xe2ac460eee7443438d5ab9f43824a819
-# 
 # How to freeze the layers:
 # https://androidkt.com/pytorch-freeze-layer-fixed-feature-extractor-transfer-learning/
-# 
 # https://www.kaggle.com/carloalbertobarbano/vgg16-transfer-learning-pytorch
-# 
 # https://debuggercafe.com/transfer-learning-with-pytorch/
 
 # Danni Chen\09/24/2021
-
-# In[1]:
 
 
 import torchvision.models as models
@@ -30,21 +20,15 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import torch.optim as optim
-
 # Import torch.nn which contains all functions necessary to define a convolutional neural network
 import torch.nn as nn
-
 # Import NiFTIDataset to access the train_test_split method and the NiFTIDataset class
 from utils.loading.NiFTIDataset import train_test_split, NiFTIDataset
 from utils.loading.NiFTIDataset import NiFTIDataset
 from utils.transforms.torchvision import Repeat, Rescale, Unsqueeze
 
 
-# # Retrieve Dataset from Metadata Dataframe and Load with Dataloader
-
-# In[2]:
-
-
+## Retrieve Dataset from Metadata Dataframe and Load with Dataloader
 # MetaData dataframe
 metadata = pd.read_csv("Metadata/metadata.csv")
 
@@ -80,12 +64,7 @@ test_dataloader = DataLoader(testing_data,batch_size=32,shuffle=False)
 
 plt.imshow(Rescale(0,1)(t['image'].T))
 
-
-# # Load the Data Into the Model
-
-# In[ ]:
-
-
+## Load the Data Into the Model
 from utils.binary_VGG16_transfer_learning import binary_VGG16_transfer_learning
 
 # Initialize a pre-trained VGG16 object will 
@@ -103,10 +82,4 @@ print(running_loss)
 
 accuracy = VGG16.model_testing()
 print(accuracy)
-
-
-# In[ ]:
-
-
-
 
