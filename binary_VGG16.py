@@ -8,7 +8,7 @@
 
 # Danni Chen\09/24/2021
 
-
+import torch
 from torch.utils.tensorboard.writer import SummaryWriter
 import torchvision.models as models
 import pandas as pd
@@ -46,7 +46,7 @@ transform = transforms.Compose([
     ])
 
 # Retrieve the dataset from info obtained in metadata dataframe
-dataset = NiFTIDataset(metadata=metadata,root='.',transform=transform)
+dataset = NiFTIDataset(metadata=metadata,root='/datadrive/COVID_IEEE/',transform=transform)
 
 # Split a NiFTIDatset into two groups (training and testing) based on information specified within its metadata dataframe
 # Return a tuple containing two NiFTIDataset objects with training and testing data, respectively.
@@ -56,14 +56,14 @@ print('Number of data in the training dataset: ' + str(len(training_data)))
 print('Number of data in the testing dataset: ' + str(len(testing_data)) + '\n')
 
 # Visualize the 886th image in the training dataset
-t = training_data.__getitem__(886)
-print(t)
+# t = training_data.__getitem__(886)
+# print(t)
 
 # load the data with dataloader
 train_dataloader = DataLoader(training_data,batch_size=32,shuffle=True)
 test_dataloader = DataLoader(testing_data,batch_size=32,shuffle=False)
 
-plt.imshow(Rescale(0,1)(t['image'].T))
+# plt.imshow(Rescale(0,1)(t['image'].T))
 
 ## Load the Data Into the Model
 from utils.binary_VGG16_transfer_learning import binary_VGG16_transfer_learning
@@ -71,6 +71,10 @@ from utils.binary_VGG16_transfer_learning import binary_VGG16_transfer_learning
 # Initialize a pre-trained VGG16 object will 
 # download its weights to a cache directory.
 model = models.vgg16(pretrained=True)
+
+# Select a device.
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+model = model.to(device)
 
 # Make a directory to save information in.
 log_dir = time.strftime(
@@ -83,7 +87,8 @@ VGG16 = binary_VGG16_transfer_learning(model = model,
                                 test_dataloader = test_dataloader,
                                 criterion = nn.CrossEntropyLoss(), 
                                 optimizer = optim.SGD(model.classifier.parameters(), lr=0.001, momentum=0.9),
-                                writer = SummaryWriter(log_dir=log_dir)
+                                writer = SummaryWriter(log_dir=log_dir),
+                                device = device
                                 )
 
 final_stats = VGG16.model_training(numOfEpoch = 100)

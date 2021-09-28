@@ -53,6 +53,7 @@ class binary_VGG16_transfer_learning():
         self.test_dataloader = test_dataloader
         
         self.model = model
+
         # Freeze training for all layers
         # To save computation time and that the network would already 
         # be able to extract generic features from the dataset.
@@ -66,6 +67,9 @@ class binary_VGG16_transfer_learning():
         classifier_layers = list(self.model.classifier.children())[:-1] # Remove the last layer
         classifier_layers.extend([nn.Linear(in_features = num_features, out_features= 2)]) # Add the new layer with outputting 2 categories
         self.model.classifier = nn.Sequential(*classifier_layers) # Replace the model classifier, Overwriting the original
+
+        # Auto-assign model to device when setting.
+        self.model = self.model.to(self.device)
         
         # Loss function
         self.criterion = criterion
@@ -109,7 +113,7 @@ class binary_VGG16_transfer_learning():
             for ith_batch,batch_data in enumerate(self.train_dataloader): 
                 # obtain the images and labels
                 img_batch,labels_batch = batch_data['image'],batch_data['label']
-                img_batch = img_batch.to(self.device)
+                img_batch = img_batch.float().to(self.device)
                 labels_batch = labels_batch.to(self.device)
 
                 # torch.Size([batch_size, 3, size_h, size_w])
@@ -124,7 +128,7 @@ class binary_VGG16_transfer_learning():
                 # forward + backward + optimize
                 # feed the img_batch (input) into the network
                 # Record the predictions and ground-truth
-                outputs = self.model(img_batch.float())
+                outputs = self.model(img_batch)
                 epoch_preds.append(outputs)
                 all_labels.append(labels_batch)
 
@@ -192,12 +196,14 @@ class binary_VGG16_transfer_learning():
         with torch.no_grad():
             for data in self.test_dataloader: # iterate through the data
                 images, labels = data['image'],data['label']
+                images = images.float().to(self.device)
+                labels = labels.to(self.device)
 
                 # we are doing binary classification here
                 labels[labels != 0] = 1
 
                 # calculate outputs by running images through the network 
-                outputs = self.model(images.float())
+                outputs = self.model(images)
                 epoch_preds.append(outputs)
                 all_labels.append(labels)
 
