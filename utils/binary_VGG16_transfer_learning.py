@@ -9,6 +9,9 @@ import torch
 import torch.nn as nn
 import sys
 
+# Generate confusion matrixes
+from sklearn.metrics import confusion_matrix
+
 # Generate summary statistics
 from .metrics import summary_statistics
 
@@ -135,30 +138,36 @@ class binary_VGG16_transfer_learning():
                         (epoch + 1 + (ith_batch + 1) / len(self.train_dataloader)) * pct
                     ))
 
+            print()
+
             # form all label and all pred vectors.
             all_labels = torch.cat(all_labels, dim=0)
             epoch_preds = torch.softmax(torch.cat(epoch_preds, dim=0), dim=1)
 
-            # report epoch-wide metrics information
-            if self.verbose:
-                print('\nAverage epoch training {:d} loss/acc: {:.3f}/{:.3f}'.format(epoch + 1, train_loss, train_acc))
-            
-            if (self.writer or epoch == numOfEpoch - 1): 
+            if (self.verbose or self.writer or epoch == numOfEpoch - 1): 
                 # generate summary training metrics
                 train_acc, train_mcc, train_auc = summary_statistics(all_labels.detach().cpu(), epoch_preds.detach().cpu())
                 train_loss = running_loss / len(self.train_dataloader)
+                
+                # report epoch-wide metrics information
+                if self.verbose:
+                    print('Average epoch {:d} training loss/acc: {:.3f}/{:.3f}'.format(epoch + 1, train_loss, train_acc))
+                    print(confusion_matrix(all_labels.detach().cpu(), epoch_preds.argmax(-1).detach().cpu()))
 
-                # Generate summary testing metrics
-                test_acc, test_mcc, test_auc = self.model_testing()
+                if self.writer or epoch == numOfEpoch - 1:
+                    # Generate summary testing metrics
+                    test_acc, test_mcc, test_auc = self.model_testing()
+       
+                    if self.writer:
+                        self.writer.add_scalar('Loss', train_loss, epoch)
+                        self.writer.add_scalars('Accuracy', {'training': train_acc, 'testing': test_acc}, epoch)
+                        self.writer.add_scalars('MCC', {'training': train_mcc, 'testing': test_mcc}, epoch)
+                        self.writer.add_scalars('AUC', {'training': train_auc, 'testing': test_auc}, epoch)
 
-                self.writer.add_scalar('Loss', train_loss, epoch)
-                self.writer.add_scalars('Accuracy', {'training': train_acc, 'testing': test_acc}, epoch)
-                self.writer.add_scalars('MCC', {'training': train_mcc, 'testing': test_mcc}, epoch)
-                self.writer.add_scalars('AUC', {'training': train_auc, 'testing': test_auc}, epoch)
-
-        print('\nDone.')
+        print('Done.')
 
         return {
+            'final_train_loss': train_loss,
             'final_train_acc': train_acc,
             'final_train_mcc': train_mcc,
             'final_train_auc': train_auc,

@@ -75,12 +75,12 @@ for slice_no in range(20, 26):
     model = models.vgg16(pretrained=True)
 
     # Select a device.
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cuda:1') if torch.cuda.is_available() else torch.device('cpu')
     model = model.to(device)
 
     # Make a directory to save information in.
     log_dir = time.strftime(
-        './runs/%b%d%y_%H-%M-%S_{}_bin_slices/'.format(socket.gethostname()),
+        './runs/%b%d%y_%H-%M-%S_{}_bin_slices_{}/'.format(socket.gethostname(),slice_no),
         time.localtime()
     )
 
@@ -106,7 +106,8 @@ for slice_no in range(20, 26):
         criterion = nn.CrossEntropyLoss(), 
         optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.classifier.parameters()), lr=0.001, momentum=0.9),
         writer = SummaryWriter(log_dir=log_dir),
-        device = device
+        device = device,
+        verbose = True
     )
 
     final_stats = VGG16.model_training(numOfEpoch = 100)

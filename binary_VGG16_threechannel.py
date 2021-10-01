@@ -39,8 +39,6 @@ metadata = pd.read_csv("Metadata/metadata.csv")
 # It in accordance with how it should be done using the above link.
 transform = transforms.Compose([
     Rescale(0,1),
-    Unsqueeze(0),
-    Repeat(3,1,1),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
                          std=[0.229, 0.224, 0.225])
     ])
@@ -105,7 +103,8 @@ VGG16 = binary_VGG16_transfer_learning(
     criterion = nn.CrossEntropyLoss(), 
     optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.classifier.parameters()), lr=0.001, momentum=0.9),
     writer = SummaryWriter(log_dir=log_dir),
-    device = device
+    device = device,
+    verbose = True
 )
 
 final_stats = VGG16.model_training(numOfEpoch = 100)

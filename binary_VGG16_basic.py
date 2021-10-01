@@ -105,7 +105,8 @@ VGG16 = binary_VGG16_transfer_learning(
     criterion = nn.CrossEntropyLoss(), 
     optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.classifier.parameters()), lr=0.001, momentum=0.9),
     writer = SummaryWriter(log_dir=log_dir),
-    device = device
+    device = device,
+    verbose = True
 )
 
 final_stats = VGG16.model_training(numOfEpoch = 100)
