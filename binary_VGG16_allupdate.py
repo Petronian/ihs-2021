@@ -79,17 +79,11 @@ model = model.to(device)
 
 # Make a directory to save information in.
 log_dir = time.strftime(
-    './runs/%b%d%y_%H-%M-%S_{}_binary/'.format(socket.gethostname()),
+    './runs/%b%d%y_%H-%M-%S_{}_bin_allupdate/'.format(socket.gethostname()),
     time.localtime()
 )
 
 # Prepare the model.
-# Freeze training for all layers
-# To save computation time and that the network would already 
-# be able to extract generic features from the dataset.
-for param in model.features.parameters():
-    param.requires_grad = False  
-
 # https://androidkt.com/pytorch-freeze-layer-fixed-feature-extractor-transfer-learning/
 # Remove the original fully-connected layer (the last layer) and create a new one
 # Newly created modules have requires_grad=True by default

@@ -8,7 +8,7 @@ Classes and helper functions for reading and splitting data in NiFTI files.
 import sys
 from typing import Tuple
 import os
-from torch import from_numpy
+from torch import from_numpy, stack
 from torch.utils.data import Dataset
 import numpy as np
 import pandas as pd
@@ -51,6 +51,10 @@ class NiFTIDataset(Dataset):
                   within the metadata file.
     transform:    Pytorch transforms dynamically applied to the loaded
                   images within the Dataset. Optional.
+    slice_cols:   The names of the columns within the metadata file to use
+                  for slice images, organized in a list. Slices will be
+                  stacked by the order of their appearance in the list.
+                  A single string may be used in place of a list.
 
     Metadata Columns
     -------
@@ -59,7 +63,8 @@ class NiFTIDataset(Dataset):
                   being the directory 'studies' folder is at.
     Label:        Label of the image given as a number.
     Label_Folder: Name of the folder containing images with the given label.
-    S25_Path:     Relative filepath of the 25th layer of the NiFTI image.
+    Slice_X_Path: Relative filepath of the slice specified by that specified by
+                  the 'slice_col' variable.
 
     Output
     ------
@@ -79,7 +84,7 @@ class NiFTIDataset(Dataset):
     Created by Peter Lais on 09/21/2021.
     """
 
-    def __init__(self, metadata, root, transform=None, verbose=False):
+    def __init__(self, metadata, root, slice_cols, transform=None, verbose=False):
         # Check if root exists.
         if not os.path.isdir(root):
             sys.exit('ImageDataset: Root does not exist.')
@@ -92,13 +97,14 @@ class NiFTIDataset(Dataset):
 
         # Optional transforms on top of tensor-ization.
         self.transform = transform
-
         # Metadata attribute
         self.metadata = metadata_df
         # Image directory
         self.root = root
         # Verbosity setting
         self.verbose = verbose
+        # Col to use for slices.
+        self.slice_cols = slice_cols if isinstance(slice_cols, list) else [slice_cols]
 
     def __len__(self):
         # Number of rows of metadata dataframe.
@@ -109,10 +115,15 @@ class NiFTIDataset(Dataset):
         image_row = self.metadata.iloc[idx]
         if self.verbose: print(image_row)
         label = image_row['Label']
-        image_path = os.path.join(self.root, image_row['Slice_25_Path'])
 
-        # Load image into numpy array and convert to Tensor.
-        image = from_numpy(np.load(image_path))
+        images = []
+
+        for slice_col in self.slice_cols:
+            image_path = os.path.join(self.root, image_row[slice_col])
+            # Load image into numpy array and convert to Tensor.
+            images.append(from_numpy(np.load(image_path)))
+
+        image = stack(images, dim=0)
 
         # Custom transforms.
         if self.transform:

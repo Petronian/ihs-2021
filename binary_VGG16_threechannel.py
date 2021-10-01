@@ -47,7 +47,7 @@ transform = transforms.Compose([
 
 # Retrieve the dataset from info obtained in metadata dataframe
 dataset = NiFTIDataset(metadata=metadata,root='/datadrive/COVID_IEEE/',transform=transform,
-    slice_cols='Slice_25_Path')
+    slice_cols=['Slice_23_Path','Slice_24_Path','Slice_25_Path'])
 
 # Split a NiFTIDatset into two groups (training and testing) based on information specified within its metadata dataframe
 # Return a tuple containing two NiFTIDataset objects with training and testing data, respectively.
@@ -79,7 +79,7 @@ model = model.to(device)
 
 # Make a directory to save information in.
 log_dir = time.strftime(
-    './runs/%b%d%y_%H-%M-%S_{}_binary/'.format(socket.gethostname()),
+    './runs/%b%d%y_%H-%M-%S_{}_bin_threechannel/'.format(socket.gethostname()),
     time.localtime()
 )
 

@@ -54,20 +54,6 @@ class binary_VGG16_transfer_learning():
         
         self.model = model
 
-        # Freeze training for all layers
-        # To save computation time and that the network would already 
-        # be able to extract generic features from the dataset.
-        for param in self.model.features.parameters():
-            param.requires_grad = False  
-        
-        # https://androidkt.com/pytorch-freeze-layer-fixed-feature-extractor-transfer-learning/
-        # Remove the original fully-connected layer (the last layer) and create a new one
-        # Newly created modules have requires_grad=True by default
-        num_features = self.model.classifier[-1].in_features
-        classifier_layers = list(self.model.classifier.children())[:-1] # Remove the last layer
-        classifier_layers.extend([nn.Linear(in_features = num_features, out_features= 2)]) # Add the new layer with outputting 2 categories
-        self.model.classifier = nn.Sequential(*classifier_layers) # Replace the model classifier, Overwriting the original
-
         # Auto-assign model to device when setting.
         self.model = self.model.to(self.device)
         
