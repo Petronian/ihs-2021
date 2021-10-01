@@ -32,10 +32,11 @@ def train_test_split(dataset: "NiFTIDataset") -> Tuple["NiFTIDataset", "NiFTIDat
     metadata = dataset.metadata
     train_mask = metadata['is_Train']
     transform = dataset.transform
+    slice_cols = dataset.slice_cols
 
     return (
-        NiFTIDataset(metadata.loc[train_mask,:], root, transform),
-        NiFTIDataset(metadata.loc[~train_mask,:], root, transform)
+        NiFTIDataset(metadata.loc[train_mask,:], root, slice_cols, transform),
+        NiFTIDataset(metadata.loc[~train_mask,:], root, slice_cols, transform)
     )
 
 
@@ -123,7 +124,7 @@ class NiFTIDataset(Dataset):
             # Load image into numpy array and convert to Tensor.
             images.append(from_numpy(np.load(image_path)))
 
-        image = stack(images, dim=0)
+        image = stack(images, dim=0) if len(images) != 1 else images[0]
 
         # Custom transforms.
         if self.transform:

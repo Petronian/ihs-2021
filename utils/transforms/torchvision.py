@@ -4,7 +4,7 @@ Transforms corresponding to torchvision.transforms semantics.
 
 # pylint: disable=no-name-in-module
 
-from torch import min, max
+import torch
 from torch.nn import Module
 
 class Rescale(Module):
@@ -29,7 +29,7 @@ class Rescale(Module):
         """
         Perform the main reshaping action described in the class description.
         """
-        return (((sample - min(sample)) / (max(sample) - min(sample)))
+        return (((sample - torch.min(sample)) / (torch.max(sample) - torch.min(sample)))
             * (self.end - self.begin) + self.begin)
 
 
