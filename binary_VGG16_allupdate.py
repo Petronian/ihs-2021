@@ -21,6 +21,7 @@ import os
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import torch.optim as optim
+from torch.nn.parallel import DataParallel
 # Import torch.nn which contains all functions necessary to define a convolutional neural network
 import torch.nn as nn
 # Import NiFTIDataset to access the train_test_split method and the NiFTIDataset class
@@ -30,6 +31,10 @@ from utils.transforms.torchvision import Repeat, Rescale, Unsqueeze
 
 # beginning cache clearing.
 torch.cuda.empty_cache()
+
+# multiGPU processing
+N = torch.cuda.device_count()
+i = list(range(N))
 
 ## Retrieve Dataset from Metadata Dataframe and Load with Dataloader
 # MetaData dataframe
@@ -77,6 +82,8 @@ model = models.vgg16(pretrained=True)
 
 # Select a device.
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+# Make a model.
 model = model.to(device)
 
 # Make a directory to save information in.
@@ -94,12 +101,15 @@ classifier_layers = list(model.classifier.children())[:-1] # Remove the last lay
 classifier_layers.extend([nn.Linear(in_features = num_features, out_features= 2)]) # Add the new layer with outputting 2 categories
 model.classifier = nn.Sequential(*classifier_layers) # Replace the model classifier, Overwriting the original
 
+# Make the model distributed.
+model = DataParallel(model, device_ids=i)
+
 VGG16 = binary_VGG16_transfer_learning(
     model = model, 
     train_dataloader = train_dataloader, 
     test_dataloader = test_dataloader,
     criterion = nn.CrossEntropyLoss(), 
-    optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.classifier.parameters()), lr=0.001, momentum=0.9),
+    optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001, momentum=0.9),
     writer = SummaryWriter(log_dir=log_dir),
     device = device,
     verbose = True
