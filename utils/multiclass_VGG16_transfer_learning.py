@@ -15,7 +15,7 @@ from sklearn.metrics import confusion_matrix
 # Generate summary statistics
 from .metrics import summary_statistics
 
-class binary_VGG16_transfer_learning():
+class multiclass_VGG16_transfer_learning():
     """
     Parameters
     ----------
@@ -77,7 +77,7 @@ class binary_VGG16_transfer_learning():
 
     def save(self, fp):
         self.check_closed()
-        torch.save(self.model.state_dict, fp)
+        torch.save(self.model.state_dict(), fp)
 
     def model_training(self, numOfEpoch):
         
@@ -118,10 +118,6 @@ class binary_VGG16_transfer_learning():
                 labels_batch = labels_batch.to(self.device)
 
                 # torch.Size([batch_size, 3, size_h, size_w])
-
-                # convert the shape of labels_batch from 64*4 to be 64*2         
-                # change labels 2 and 3 to 1
-                labels_batch[labels_batch != 0] = 1
 
                 # zero the parameter gradients (necessary because .backward() accumulate gradient for each parameter after each iteration)
                 self.optimizer.zero_grad()
@@ -207,9 +203,6 @@ class binary_VGG16_transfer_learning():
                 images, labels = data['image'],data['label']
                 images = images.float().to(self.device)
                 labels = labels.to(self.device)
-
-                # we are doing binary classification here
-                labels[labels != 0] = 1
 
                 # calculate outputs by running images through the network 
                 outputs = self.model(images)

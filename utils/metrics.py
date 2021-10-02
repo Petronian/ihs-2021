@@ -32,9 +32,9 @@ def summary_statistics(y_true, y_pred):
     assert y_true.ndim == 1 and y_pred.ndim <= 2
 
     # This function cannot be used for multiclass classification.
-    if (y_pred.ndim == 2 and y_pred.shape[-1] > 2):
-        raise NotImplementedError("summary_statistics does not support multiclass " \
-         + "classification.")
+    # if (y_pred.ndim == 2 and y_pred.shape[-1] > 2):
+    #     raise NotImplementedError("summary_statistics does not support multiclass " \
+    #      + "classification.")
 
     # Greedy classification, handles one-dimensional and two-dimensional y_preds
     y_greedy = y_pred.argmax(-1) if y_pred.ndim > 1 else y_pred.round()
@@ -48,6 +48,6 @@ def summary_statistics(y_true, y_pred):
         if w: print('Warning raised with MCC calculation. This can likely be ignored.')
 
     # Calculate the AUC with the predicted probabilities.
-    auc = roc_auc_score(y_true, y_pred if y_greedy.max() > 1 else y_pred.max(1)[0])
+    auc = roc_auc_score(y_true, y_pred if y_pred.ndim > 1 else y_pred.max(1)[0], multi_class='ovr')
 
     return acc, mcc, auc
